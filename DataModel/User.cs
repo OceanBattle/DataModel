@@ -7,12 +7,12 @@ namespace DataModel
         /// <summary>
         /// First name of user.
         /// </summary>
-        public string FirstName { get; set; }
+        public string? FirstName { get; set; }
     
         /// <summary>
         /// Last name of user.
         /// </summary>
-        public string LastName { get; set; }
+        public string? LastName { get; set; }
 
         /// <summary>
         /// User's date of birth.
