@@ -1,6 +1,6 @@
 ﻿using Microsoft.AspNetCore.Identity;
 
-namespace DataModel
+namespace OceanBattle.DataModel
 {
     public class User : IdentityUser
     {
