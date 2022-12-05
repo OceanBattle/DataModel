@@ -6,7 +6,11 @@ using System.Threading.Tasks;
 
 namespace OceanBattle.DataModel.Game
 {
-    internal class Orientation
+    public enum Orientation
     {
+        West = 0,
+        North = 1,
+        East = 2,
+        South = 3
     }
 }
