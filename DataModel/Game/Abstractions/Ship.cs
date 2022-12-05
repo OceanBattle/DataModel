@@ -9,6 +9,7 @@ namespace OceanBattle.DataModel.Game.Abstractions
 {
     public abstract class Ship
     {
+        public Orientation Orientation { get; set; }
         public int Width { get; private set; }
         public int Length { get; private set; }
         public Armour[][] Cells { get; private set; }

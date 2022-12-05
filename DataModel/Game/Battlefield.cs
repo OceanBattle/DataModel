@@ -30,15 +30,43 @@ namespace OceanBattle.DataModel.Game
 
         public bool PlaceShip(int m, int n, Ship ship)
         {
-            for (int i = 0; i < ship.Width; i++)
-                for (int j = 0; j < ship.Length; j++)
+            int width = ship.Width;
+            int length = ship.Length;
+
+            int iMultiplier = 1;
+            int jMultiplier = 1;
+
+            switch (ship.Orientation)
+            {
+                case Orientation.North:
+                    (width, length) = (length, width);
+                    break;
+                case Orientation.South:
+                    (width, length) = (length, width);
+                    iMultiplier = -1;
+                    jMultiplier = -1;
+                    break;
+                case Orientation.East:
+                    iMultiplier = -1; 
+                    jMultiplier = -1;
+                    break;
+                default:
+                    break;
+            }
+
+            for (int i = 0; i < width; i++)
+                for (int j = 0; j < length; j++)
                 {
-                    Cell cell = Grid[i + m][j + n];
+                    if ((iMultiplier * i + m > Grid.Length || iMultiplier * i + m < 0) || 
+                        (jMultiplier * j + n > Grid[i + m].Length || jMultiplier * j + n < 0))
+                        return false;
+
+                    Cell cell = Grid[iMultiplier * i + m][jMultiplier * j + n];
 
                     if (cell.IsPopulated)
                         return false;
 
-                    Grid[i + m][j + n] = ship.Cells[i][j];
+                    Grid[iMultiplier * i + m][jMultiplier * j + n] = ship.Cells[i][j];
                 }
 
             return true;
@@ -87,7 +115,11 @@ namespace OceanBattle.DataModel.Game
                 int maxDamage = (int)(weapon.Damage / Math.Sqrt(j * j + i * i));
                 int damage = rng.Next((int)Math.Floor(maxDamage * 0.75), maxDamage);
 
-                Grid[cells[number].m][cells[number].n].Hit(damage);
+                if (cells[number].m >= 0 && 
+                    cells[number].m < Grid.Length && 
+                    cells[number].n >= 0 && 
+                    cells[number].n < Grid[m].Length)
+                    Grid[cells[number].m][cells[number].n].Hit(damage);
             }
         }
     }
