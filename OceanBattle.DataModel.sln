@@ -5,6 +5,10 @@ VisualStudioVersion = 17.3.32922.545
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OceanBattle.DataModel", "DataModel\OceanBattle.DataModel.csproj", "{DBE38120-4A02-4E1A-A591-F7BB1E33AFA3}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Tests", "Tests", "{FCD619C3-1C17-4FD0-B9D2-D5C3BF12DCF8}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OceanBattle.DataModel.Tests", "OceanBattle.DataModel.Tests\OceanBattle.DataModel.Tests.csproj", "{CCC59F27-62B0-4AA3-8FE0-297F65D0EB80}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -15,9 +19,16 @@ Global
 		{DBE38120-4A02-4E1A-A591-F7BB1E33AFA3}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{DBE38120-4A02-4E1A-A591-F7BB1E33AFA3}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{DBE38120-4A02-4E1A-A591-F7BB1E33AFA3}.Release|Any CPU.Build.0 = Release|Any CPU
+		{CCC59F27-62B0-4AA3-8FE0-297F65D0EB80}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{CCC59F27-62B0-4AA3-8FE0-297F65D0EB80}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{CCC59F27-62B0-4AA3-8FE0-297F65D0EB80}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{CCC59F27-62B0-4AA3-8FE0-297F65D0EB80}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{CCC59F27-62B0-4AA3-8FE0-297F65D0EB80} = {FCD619C3-1C17-4FD0-B9D2-D5C3BF12DCF8}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {54478361-AB2E-4401-B4FA-65A9742C7781}

@@ -1,10 +1,6 @@
 ﻿using OceanBattle.DataModel.Game.Abstractions;
 using OceanBattle.DataModel.Game.EnviromentElements;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using System.Numerics;
 
 namespace OceanBattle.DataModel.Game
 {
@@ -28,51 +24,59 @@ namespace OceanBattle.DataModel.Game
             }
         }
 
-        public bool PlaceShip(int m, int n, Ship ship)
+        public bool PlaceShip(int x, int y, Ship ship)
         {
-            int width = ship.Width;
-            int length = ship.Length;
-
-            int iMultiplier = 1;
-            int jMultiplier = 1;
+            int[][] transformation = 
+            {
+                new int[] { 1, 0 },
+                new int[] { 0, 1 }
+            };
 
             switch (ship.Orientation)
             {
                 case Orientation.North:
-                    (width, length) = (length, width);
-                    break;
-                case Orientation.South:
-                    (width, length) = (length, width);
-                    iMultiplier = -1;
-                    jMultiplier = -1;
+                    transformation[0] = new int[] { 0, -1 };
+                    transformation[1] = new int[] { 1,  0 };
                     break;
                 case Orientation.East:
-                    iMultiplier = -1; 
-                    jMultiplier = -1;
+                    transformation[0] = new int[] { -1,  0 };
+                    transformation[1] = new int[] {  0, -1 };
+                    break;
+                case Orientation.South:
+                    transformation[0] = new int[] {  0, 1 };
+                    transformation[1] = new int[] { -1, 0 };
                     break;
                 default:
                     break;
             }
 
-            for (int i = 0; i < width; i++)
-                for (int j = 0; j < length; j++)
+            for (int i = 0; i < ship.Width; i++)
+                for (int j = 0; j < ship.Length; j++)
                 {
-                    if ((iMultiplier * i + m > Grid.Length || iMultiplier * i + m < 0) || 
-                        (jMultiplier * j + n > Grid[i + m].Length || jMultiplier * j + n < 0))
+                    (int x, int y) vector = 
+                        (i * transformation[0][0] + j * transformation[0][1] + x,
+                         i * transformation[1][0] + j * transformation[1][1] + y);
+
+                    if (vector.x >= Grid.Length || 
+                        vector.x < 0 || 
+                        vector.y >= Grid[0].Length || 
+                        vector.y < 0)
                         return false;
 
-                    Cell cell = Grid[iMultiplier * i + m][jMultiplier * j + n];
+                    Cell cell = Grid[vector.x][vector.y];
 
-                    if (cell.IsPopulated)
+                    if (cell is null || cell.IsPopulated) 
                         return false;
 
-                    Grid[iMultiplier * i + m][jMultiplier * j + n] = ship.Cells[i][j];
+                    Grid[vector.x][vector.y] = ship.Cells[i][j];
                 }
+
+            _ships.Add(ship);
 
             return true;
         }
 
-        public void Hit(int m, int n, Weapon weapon)
+        public bool Hit(int x, int y, Weapon weapon)
         {
             Random rng = new Random(Guid.NewGuid().GetHashCode());
 
@@ -81,19 +85,19 @@ namespace OceanBattle.DataModel.Game
             for (int i = 0; i <= weapon.DamageRadius; i++)
                 for (int j = 0; j * j + i * i <= weapon.DamageRadius * weapon.DamageRadius; j++)
                 {
-                    cells.Add((m + i, n + j));
+                    cells.Add((x + i, y + j));
 
                     if (i != 0)
-                        cells.Add((m + i, n - j));
+                        cells.Add((x + i, y - j));
                     
                     if (j != 0)
-                        cells.Add((m - i, n + j));
+                        cells.Add((x - i, y + j));
 
                     if (i != 0 && j != 0)
-                        cells.Add((m - i, n - j));
+                        cells.Add((x - i, y - j));
                 }
 
-            int[] randomNumbers = new int[cells.Count / 2];
+            int[] randomNumbers = new int[1 + cells.Count / 2];
             randomNumbers[0] = 0;
 
             int count = 1;
@@ -112,15 +116,22 @@ namespace OceanBattle.DataModel.Game
                 int i = cells[number].m;
                 int j = cells[number].n;
 
-                int maxDamage = (int)(weapon.Damage / Math.Sqrt(j * j + i * i));
+                double distance = Math.Sqrt(j * j + i * i);
+
+                if (distance < 1)
+                    distance = 1;
+
+                int maxDamage = (int)(weapon.Damage / distance);
                 int damage = rng.Next((int)Math.Floor(maxDamage * 0.75), maxDamage);
 
                 if (cells[number].m >= 0 && 
                     cells[number].m < Grid.Length && 
                     cells[number].n >= 0 && 
-                    cells[number].n < Grid[m].Length)
+                    cells[number].n < Grid[x].Length)
                     Grid[cells[number].m][cells[number].n].Hit(damage);
             }
+
+            return true;
         }
     }
 }

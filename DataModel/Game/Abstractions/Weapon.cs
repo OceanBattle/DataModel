@@ -8,7 +8,7 @@ namespace OceanBattle.DataModel.Game.Abstractions
 {
     public class Weapon
     {
-        public int DamageRadius { get; internal set; }
-        public int Damage { get; internal set; }
+        public int DamageRadius { get; set; }
+        public int Damage { get; set; }
     }
 }

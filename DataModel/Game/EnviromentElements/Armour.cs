@@ -9,10 +9,14 @@ namespace OceanBattle.DataModel.Game.EnviromentElements
 {
     public class Armour : Cell
     {
+        public int MaxHP { get; private set; }
+
         public int HP { get; private set; }
 
         public Armour(int hp)        {
+            MaxHP = hp;
             HP = hp;
+            IsPopulated = true;
         }
 
         public override void Hit(int damage)
