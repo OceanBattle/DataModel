@@ -73,6 +73,8 @@ namespace OceanBattle.DataModel.Tests
             // Arrange
             int dimensions = 20;
             Battlefield battlefield = new Battlefield(dimensions, dimensions);
+            Battleship battleship = new Battleship(400);
+            battlefield.PlaceShip(15, 18, battleship);
 
             // Act
             bool actual = battlefield.Hit(x, y, weapon);
