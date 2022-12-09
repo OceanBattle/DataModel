@@ -26,7 +26,7 @@ namespace OceanBattle.DataModel.Game
 
         public bool PlaceShip(int x, int y, Ship ship)
         {
-            int[][] transformation = 
+            int[][] transformation =
             {
                 new int[] { 1, 0 },
                 new int[] { 0, 1 }
@@ -34,16 +34,16 @@ namespace OceanBattle.DataModel.Game
 
             switch (ship.Orientation)
             {
-                case Orientation.North:
+                case Orientation.West:
                     transformation[0] = new int[] { 0, -1 };
-                    transformation[1] = new int[] { 1,  0 };
-                    break;
-                case Orientation.East:
-                    transformation[0] = new int[] { -1,  0 };
-                    transformation[1] = new int[] {  0, -1 };
+                    transformation[1] = new int[] { 1, 0 };
                     break;
                 case Orientation.South:
-                    transformation[0] = new int[] {  0, 1 };
+                    transformation[0] = new int[] { -1, 0 };
+                    transformation[1] = new int[] { 0, -1 };
+                    break;
+                case Orientation.East:
+                    transformation[0] = new int[] { 0, 1 };
                     transformation[1] = new int[] { -1, 0 };
                     break;
                 default:
@@ -53,19 +53,19 @@ namespace OceanBattle.DataModel.Game
             for (int i = 0; i < ship.Width; i++)
                 for (int j = 0; j < ship.Length; j++)
                 {
-                    (int x, int y) vector = 
+                    (int x, int y) vector =
                         (i * transformation[0][0] + j * transformation[0][1] + x,
                          i * transformation[1][0] + j * transformation[1][1] + y);
 
-                    if (vector.x >= Grid.Length || 
-                        vector.x < 0 || 
-                        vector.y >= Grid[0].Length || 
+                    if (vector.x >= Grid.Length ||
+                        vector.x < 0 ||
+                        vector.y >= Grid[0].Length ||
                         vector.y < 0)
                         return false;
 
                     Cell cell = Grid[vector.x][vector.y];
 
-                    if (cell is null || cell.IsPopulated) 
+                    if (cell is null || cell.IsPopulated)
                         return false;
 
                     Grid[vector.x][vector.y] = ship.Cells[i][j];
@@ -78,22 +78,34 @@ namespace OceanBattle.DataModel.Game
 
         public bool Hit(int x, int y, Weapon weapon)
         {
+            if (x < 0 || x >= Grid.Length ||
+                y < 0 || y >= Grid[x].Length)
+                return false;
+
             Random rng = new Random(Guid.NewGuid().GetHashCode());
 
-            List<(int m, int n)> cells = new List<(int m, int n)>();
+            List<(int x, int y)> cells = new List<(int x, int y)>();
 
             for (int i = 0; i <= weapon.DamageRadius; i++)
                 for (int j = 0; j * j + i * i <= weapon.DamageRadius * weapon.DamageRadius; j++)
                 {
-                    cells.Add((x + i, y + j));
+                    if (x + i >= 0 && x + i < Grid.Length &&
+                        y + j >= 0 && x + j < Grid[x].Length)
+                        cells.Add((x + i, y + j));
 
-                    if (i != 0)
+                    if (j != 0 && 
+                        x + i >= 0 && x + i < Grid.Length &&
+                        y - j >= 0 && x - j < Grid[x].Length)
                         cells.Add((x + i, y - j));
                     
-                    if (j != 0)
+                    if (i != 0 && 
+                        x - i >= 0 && x - i < Grid.Length &&
+                        y + j >= 0 && x + j < Grid[x].Length)
                         cells.Add((x - i, y + j));
 
-                    if (i != 0 && j != 0)
+                    if (i != 0 && j != 0 && 
+                        x - i >= 0 && x - i < Grid.Length &&
+                        y - j >= 0 && x - j < Grid[x].Length)
                         cells.Add((x - i, y - j));
                 }
 
@@ -113,8 +125,8 @@ namespace OceanBattle.DataModel.Game
 
             foreach (int number in randomNumbers)
             {
-                int i = cells[number].m;
-                int j = cells[number].n;
+                int i = cells[number].x;
+                int j = cells[number].y;
 
                 double distance = Math.Sqrt(j * j + i * i);
 
@@ -124,11 +136,7 @@ namespace OceanBattle.DataModel.Game
                 int maxDamage = (int)(weapon.Damage / distance);
                 int damage = rng.Next((int)Math.Floor(maxDamage * 0.75), maxDamage);
 
-                if (cells[number].m >= 0 && 
-                    cells[number].m < Grid.Length && 
-                    cells[number].n >= 0 && 
-                    cells[number].n < Grid[x].Length)
-                    Grid[cells[number].m][cells[number].n].Hit(damage);
+                Grid[cells[number].x][cells[number].y].Hit(damage);
             }
 
             return true;

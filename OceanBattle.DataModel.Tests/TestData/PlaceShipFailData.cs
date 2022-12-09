@@ -47,19 +47,19 @@ namespace OceanBattle.DataModel.Tests.TestData
             yield return new object[]
             {
                 3, 3,
-                new Battleship(100) { Orientation = Orientation.North }
+                new Battleship(100) { Orientation = Orientation.West }
             };
 
             yield return new object[]
             {
                 5, 2,
-                new Battleship(100) { Orientation = Orientation.East }
+                new Battleship(100) { Orientation = Orientation.South }
             };
 
             yield return new object[]
             {
                 16, 7,
-                new Battleship(100) { Orientation = Orientation.South }
+                new Battleship(100) { Orientation = Orientation.East }
             };
         }
 

@@ -82,11 +82,13 @@ namespace OceanBattle.DataModel.Tests
             // Assert
             Assert.True(actual);
 
+            Assert.True(battlefield.Grid[x][y].IsHit);
+
             int hitCount = 0;
 
             foreach ((int x, int y) element in cells)
             {
-                Cell cell = battlefield.Grid[x][y];
+                Cell cell = battlefield.Grid[element.x][element.y];
 
                 if (cell.IsHit)
                 {

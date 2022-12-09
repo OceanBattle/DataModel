@@ -20,7 +20,7 @@ namespace OceanBattle.DataModel.Tests.TestData
             yield return new object[]
             {
                 5, 5,
-                new Frigate(100) { Orientation = Orientation.North },                
+                new Frigate(100) { Orientation = Orientation.West },                
                 (5, 5),
                 (4, 5), 
                 (3, 5)
@@ -29,7 +29,7 @@ namespace OceanBattle.DataModel.Tests.TestData
             yield return new object[]
             {
                 5, 5,
-                new Frigate(100) { Orientation = Orientation.East },                
+                new Frigate(100) { Orientation = Orientation.South },                
                 (5, 5),
                 (5, 4),
                 (5, 3)
@@ -38,7 +38,7 @@ namespace OceanBattle.DataModel.Tests.TestData
             yield return new object[]
             {
                 5, 5,
-                new Frigate(100) { Orientation = Orientation.South },                
+                new Frigate(100) { Orientation = Orientation.East },                
                 (5, 5),
                 (6, 5),
                 (7, 5)
@@ -58,7 +58,7 @@ namespace OceanBattle.DataModel.Tests.TestData
             yield return new object[]
             {
                 5, 7,
-                new Battleship(100) { Orientation = Orientation.North },                
+                new Battleship(100) { Orientation = Orientation.West },                
                 (5, 7), (5, 8),
                 (4, 7), (4, 8),
                 (3, 7), (3, 8),
@@ -69,7 +69,7 @@ namespace OceanBattle.DataModel.Tests.TestData
             yield return new object[]
             {
                 5, 7,
-                new Battleship(100) { Orientation = Orientation.East },                
+                new Battleship(100) { Orientation = Orientation.South },                
                 (5, 7), (4, 7),
                 (5, 6), (4, 6),
                 (5, 5), (4, 5),
@@ -80,7 +80,7 @@ namespace OceanBattle.DataModel.Tests.TestData
             yield return new object[]
             {
                 5, 7,
-                new Battleship(100) { Orientation = Orientation.South },                
+                new Battleship(100) { Orientation = Orientation.East },                
                 (5, 7), (5, 6),
                 (6, 7), (6, 6),
                 (7, 7), (7, 6),
