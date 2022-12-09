@@ -36,14 +36,14 @@ namespace OceanBattle.DataModel.Game
             {
                 case Orientation.West:
                     transformation[0] = new int[] { 0, -1 };
-                    transformation[1] = new int[] { 1, 0 };
+                    transformation[1] = new int[] { 1,  0 };
                     break;
                 case Orientation.South:
-                    transformation[0] = new int[] { -1, 0 };
-                    transformation[1] = new int[] { 0, -1 };
+                    transformation[0] = new int[] { -1,  0 };
+                    transformation[1] = new int[] {  0, -1 };
                     break;
                 case Orientation.East:
-                    transformation[0] = new int[] { 0, 1 };
+                    transformation[0] = new int[] {  0, 1 };
                     transformation[1] = new int[] { -1, 0 };
                     break;
                 default:

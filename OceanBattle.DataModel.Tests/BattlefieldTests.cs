@@ -81,7 +81,6 @@ namespace OceanBattle.DataModel.Tests
 
             // Assert
             Assert.True(actual);
-
             Assert.True(battlefield.Grid[x][y].IsHit);
 
             int hitCount = 0;
