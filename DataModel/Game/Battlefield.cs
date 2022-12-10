@@ -1,6 +1,5 @@
 ﻿using OceanBattle.DataModel.Game.Abstractions;
 using OceanBattle.DataModel.Game.EnviromentElements;
-using System.Numerics;
 
 namespace OceanBattle.DataModel.Game
 {
@@ -9,7 +8,15 @@ namespace OceanBattle.DataModel.Game
         private List<Ship> _ships = new List<Ship>();
         public IEnumerable<Ship> Ships => _ships.AsEnumerable();
 
+        public IEnumerable<Ship> AnonimizedShips => _ships
+            .Where(ship => ship.IsDestroyed)
+            .AsEnumerable();
+
+        public User? Owner { get; set; }
+
         public Cell[][] Grid { get; private set; }
+
+        public Cell[][] AnonimizedGrid => AnonimizeGrid();
 
         public Battlefield(int m, int n)
         {
@@ -140,6 +147,28 @@ namespace OceanBattle.DataModel.Game
             }
 
             return true;
+        }
+
+        private Cell[][] AnonimizeGrid()
+        {
+            Cell[][] cells = new Cell[Grid.Length][];
+
+            for (int i = 0; i < cells.Length; i++)
+            {
+                cells[i] = new Cell[Grid[i].Length];
+
+                for (int j = 0; j < cells[i].Length; j++)
+                {
+                    Cell cell = Grid[i][j];
+
+                    if (cell is Water || cell is Land || (cell is Armour && cell.IsHit))
+                        cells[i][j] = cell;
+                    else
+                        cells[i][j] = new Water();
+                }
+            }
+                
+            return cells;
         }
     }
 }

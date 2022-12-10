@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -13,6 +14,8 @@ namespace OceanBattle.DataModel.Game.Abstractions
         public int Width { get; private set; }
         public int Length { get; private set; }
         public Armour[][] Cells { get; private set; }
+
+        public bool IsDestroyed => !Cells.SelectMany(a => a).Any(c => c.HP != 0);
 
         public Ship(
             int width, 

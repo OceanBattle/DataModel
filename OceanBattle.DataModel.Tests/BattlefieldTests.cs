@@ -4,6 +4,8 @@ using OceanBattle.DataModel.Game.EnviromentElements;
 using OceanBattle.DataModel.Game.Ships;
 using OceanBattle.DataModel.Tests.TestData;
 using System.Drawing;
+using System.Linq;
+using System.Runtime.Serialization.Json;
 
 namespace OceanBattle.DataModel.Tests
 {
@@ -12,8 +14,8 @@ namespace OceanBattle.DataModel.Tests
         [Theory]
         [ClassData(typeof(PlaceShipSucceedData))]
         public void PlaceShip_ShouldSucceed(
-            int x, 
-            int y, 
+            int x,
+            int y,
             Ship ship,
             params (int x, int y)[] cells)
         {
@@ -33,13 +35,13 @@ namespace OceanBattle.DataModel.Tests
                 Cell cell = battlefield.Grid[element.m][element.n];
                 Assert.True(cell.IsPopulated);
             }
-            
-            for (int i = 0; i < battlefield.Grid.Length; i++)            
+
+            for (int i = 0; i < battlefield.Grid.Length; i++)
                 for (int j = 0; j < battlefield.Grid[i].Length; j++)
                 {
                     if (!cells.Any(c => c.x == i && c.y == j))
                         Assert.False(battlefield.Grid[i][j].IsPopulated);
-                }            
+                }
         }
 
         [Theory]
@@ -105,7 +107,7 @@ namespace OceanBattle.DataModel.Tests
                 }
             }
 
-            for (int i = 0; i < dimensions; i++) 
+            for (int i = 0; i < dimensions; i++)
                 for (int j = 0; j < dimensions; j++)
                 {
                     if (!cells.Any(c => c.x == i || c.y == j))
@@ -119,7 +121,7 @@ namespace OceanBattle.DataModel.Tests
         [InlineData(22, 25)]
         [InlineData(-1, 10)]
         [InlineData(20, 19)]
-        public void hit_ShouldFail(int x, int y)
+        public void Hit_ShouldFail(int x, int y)
         {
             // Arrange
             int dimensions = 20;
@@ -131,6 +133,60 @@ namespace OceanBattle.DataModel.Tests
 
             // Assert
             Assert.False(actual);
+        }
+
+        [Fact]
+        public void AnonimizedShips_ShouldSucceed()
+        {
+            // Arrange 
+            int dimensions = 20;
+            Battlefield battlefield = new Battlefield(dimensions, dimensions);
+            PopulateBattlefield(battlefield);
+
+            // Act 
+            IEnumerable<Ship> actual = battlefield.AnonimizedShips.ToList();
+
+            // Assert
+            Assert.DoesNotContain(actual, ship => !ship.IsDestroyed);
+            Assert.True(actual.Count() == 3);
+        }
+
+        [Fact]
+        public void AnonimizedGrid_ShouldSucceed()
+        {
+            // Arrange
+            int dimensions = 20;
+            Battlefield battlefield = new Battlefield(dimensions, dimensions);
+            PopulateBattlefield(battlefield);
+
+            // Act
+            Cell[][] actual = battlefield.AnonimizedGrid;
+
+            // Assert              
+            Assert.DoesNotContain(actual.SelectMany(cells => cells), cell => cell is Armour armour && !armour.IsHit);
+        }
+
+        private void PopulateBattlefield(Battlefield battlefield)
+        {
+            int hp = 100;
+            Dictionary<Ship, (int x, int y)> dataSets = new Dictionary<Ship, (int x, int y)>
+            {
+                { new Battleship(2 * hp), (0, 0) },
+                { new Destroyer(hp), (2, 10) },
+                { new Frigate(2 * hp), (5, 3) },
+                { new Frigate(hp), (6, 10) },
+                { new Corvette(2 * hp), (8, 5) },
+                { new Corvette(hp), (12, 13) }
+            };
+
+            dataSets.AsParallel().ForAll(dataSet =>
+            {
+                battlefield.PlaceShip(dataSet.Value.x, dataSet.Value.y, dataSet.Key);
+
+                dataSet.Key.Cells
+                .ToList()
+                .ForEach(cells => cells.ToList().ForEach(cell => cell.Hit(hp)));
+            });
         }
     }
 }
