@@ -3,7 +3,7 @@ using OceanBattle.DataModel.Game.EnviromentElements;
 
 namespace OceanBattle.DataModel.Game
 {
-    public class Battlefield
+    public class Battlefield : IBattlefield
     {
         private List<Ship> _ships = new List<Ship>();
         public IEnumerable<Ship> Ships => _ships.AsEnumerable();

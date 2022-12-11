@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace OceanBattle.DataModel.Game.Abstractions
 {
-    public abstract class Cell
+    public abstract class Cell : IHittable
     {
         public bool IsPopulated { get; internal set; }
         public bool IsHit { get; private set; }

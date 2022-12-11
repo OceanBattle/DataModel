@@ -7,7 +7,9 @@ using System.Threading.Tasks;
 namespace OceanBattle.DataModel.Game.Abstractions
 {
     public abstract class Warship : Ship
-    {
+    {        
+        public IEnumerable<Weapon>? Weapons { get; set; }
+
         public Warship(
             int width,
             int length,
