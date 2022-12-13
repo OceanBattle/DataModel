@@ -1,11 +1,16 @@
 ﻿using OceanBattle.DataModel.Game.Abstractions;
 using OceanBattle.DataModel.Game.EnviromentElements;
+using System.Reactive.Linq;
+using System.Reactive.Subjects;
 
 namespace OceanBattle.DataModel.Game
 {
     public class Battlefield : IBattlefield
     {
-        private List<Ship> _ships = new List<Ship>();
+        private Subject<(int x, int y)> _gotHit = new();
+        public IObservable<(int x, int y)> GotHit => _gotHit.AsObservable();
+
+        private List<Ship> _ships = new();
         public IEnumerable<Ship> Ships => _ships.AsEnumerable();
 
         public IEnumerable<Ship> AnonimizedShips => _ships
@@ -146,9 +151,12 @@ namespace OceanBattle.DataModel.Game
                 Grid[cells[number].x][cells[number].y].Hit(damage);
             }
 
-            return true;
-        }
+            EmitHit(x, y);
 
+            return true;
+        }        
+
+        #region private helpers
         private Cell[][] AnonimizeGrid()
         {
             Cell[][] cells = new Cell[Grid.Length][];
@@ -167,8 +175,17 @@ namespace OceanBattle.DataModel.Game
                         cells[i][j] = new Water();
                 }
             }
-                
+
             return cells;
         }
+
+        private void EmitHit(int x, int y)
+        {
+            _gotHit.OnNext((x, y));
+
+            if (AnonimizedShips.Count() == _ships.Count)
+                _gotHit.OnCompleted();            
+        }
+        #endregion
     }
 }

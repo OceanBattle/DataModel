@@ -15,5 +15,6 @@ namespace OceanBattle.DataModel.Game.Abstractions
         Cell[][] AnonimizedGrid { get; }
         bool PlaceShip(int x, int y, Ship ship);
         bool Hit(int x, int y, Weapon weapon);
+        IObservable<(int x, int y)> GotHit { get; } 
     }
 }
