@@ -5,7 +5,7 @@ namespace OceanBattle.DataModel
 {
     public class User : IdentityUser
     {
-        public IEnumerable<Ship>? OwnedVessels { get; set; }
+        //public IEnumerable<Ship>? OwnedVessels { get; set; }
 
         /// <summary>
         /// First name of user.
