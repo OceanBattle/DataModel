@@ -11,6 +11,20 @@ namespace OceanBattle.DataModel.Tests
 {
     public class BattlefieldTests
     {
+        private const int dimensions = 20;
+        private readonly Level level = new Level
+        {
+            BattlefieldSize = dimensions,
+            AvailableTypes = new Dictionary<Type, int>
+            {
+                { typeof(Battleship), 5 },
+                { typeof(Cruiser),    5 },
+                { typeof(Destroyer),  5 },
+                { typeof(Frigate),    5 },    
+                { typeof(Corvette),   5 },
+            }
+        };
+
         [Theory]
         [ClassData(typeof(PlaceShipSucceedData))]
         public void PlaceShip_ShouldSucceed(
@@ -20,8 +34,7 @@ namespace OceanBattle.DataModel.Tests
             params (int x, int y)[] cells)
         {
             // Arrange
-            int dimension = 20;
-            Battlefield battlefield = new Battlefield(dimension, dimension);
+            Battlefield battlefield = new Battlefield(level);
 
             // Act
             bool actual = battlefield.PlaceShip(x, y, ship);
@@ -52,8 +65,7 @@ namespace OceanBattle.DataModel.Tests
             Ship ship)
         {
             // Arrange
-            int dimension = 20;
-            Battlefield battlefield = new Battlefield(dimension, dimension);
+            Battlefield battlefield = new Battlefield(level);
 
             battlefield.PlaceShip(19, 16, new Destroyer(100));
 
@@ -73,10 +85,9 @@ namespace OceanBattle.DataModel.Tests
             params (int x, int y)[] cells)
         {
             // Arrange
-            int dimensions = 20;
-            Battlefield battlefield = new Battlefield(dimensions, dimensions);
+            Battlefield battlefield = new Battlefield(level);
             Battleship battleship = new Battleship(400);
-            battlefield.PlaceShip(15, 18, battleship);
+            battlefield.PlaceShip(15, 15, battleship);
 
             // Act
             bool actual = battlefield.Hit(x, y, weapon);
@@ -124,8 +135,7 @@ namespace OceanBattle.DataModel.Tests
         public void Hit_ShouldFail(int x, int y)
         {
             // Arrange
-            int dimensions = 20;
-            Battlefield battlefield = new Battlefield(dimensions, dimensions);
+            Battlefield battlefield = new Battlefield(level);
             Weapon weapon = new Weapon { Damage = 100, DamageRadius = 3 };
 
             // Act
@@ -139,8 +149,7 @@ namespace OceanBattle.DataModel.Tests
         public void AnonimizedShips_ShouldSucceed()
         {
             // Arrange 
-            int dimensions = 20;
-            Battlefield battlefield = new Battlefield(dimensions, dimensions);
+            Battlefield battlefield = new Battlefield(level);
             PopulateBattlefield(battlefield);
 
             // Act 
@@ -155,8 +164,7 @@ namespace OceanBattle.DataModel.Tests
         public void AnonimizedGrid_ShouldSucceed()
         {
             // Arrange
-            int dimensions = 20;
-            Battlefield battlefield = new Battlefield(dimensions, dimensions);
+            Battlefield battlefield = new Battlefield(level);
             PopulateBattlefield(battlefield);
 
             // Act

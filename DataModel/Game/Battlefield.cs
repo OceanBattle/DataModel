@@ -2,6 +2,7 @@
 using OceanBattle.DataModel.Game.EnviromentElements;
 using System.Reactive.Linq;
 using System.Reactive.Subjects;
+using System.Security.Cryptography.X509Certificates;
 
 namespace OceanBattle.DataModel.Game
 {
@@ -17,50 +18,49 @@ namespace OceanBattle.DataModel.Game
             .Where(ship => ship.IsDestroyed)
             .AsEnumerable();
 
+        public Level Level { get; private set; }
+
         public User? Owner { get; set; }
+
+        private bool _isReady;
+        public bool IsReady
+        {
+            get => _isReady;
+            set => _isReady = 
+                value && Owner is not null;            
+        }
 
         public Cell[][] Grid { get; private set; }
 
         public Cell[][] AnonimizedGrid => AnonimizeGrid();
 
-        public Battlefield(int m, int n)
+        public Battlefield(Level level)
         {
-            Grid = new Cell[m][];
+            Level = level;
 
-            for (int i = 0; i < m; i++)
+            if (Level.AvailableTypes is null)
+                Level.AvailableTypes = new Dictionary<Type, int>();
+
+            Grid = new Cell[level.BattlefieldSize][];
+
+            for (int i = 0; i < level.BattlefieldSize; i++)
             {
-                Grid[i] = new Cell[n];
+                Grid[i] = new Cell[level.BattlefieldSize];
 
-                for (int j = 0; j < n; j++)
+                for (int j = 0; j < level.BattlefieldSize; j++)
                     Grid[i][j] = new Water();
             }
         }
 
-        public bool PlaceShip(int x, int y, Ship ship)
+        public bool CanPlaceShip(int x, int y, Ship ship)
         {
-            int[][] transformation =
-            {
-                new int[] { 1, 0 },
-                new int[] { 0, 1 }
-            };
+            if (!Level.AvailableTypes!.TryGetValue(ship.GetType(), out int maxAmount))
+                return false;
 
-            switch (ship.Orientation)
-            {
-                case Orientation.West:
-                    transformation[0] = new int[] { 0, -1 };
-                    transformation[1] = new int[] { 1,  0 };
-                    break;
-                case Orientation.South:
-                    transformation[0] = new int[] { -1,  0 };
-                    transformation[1] = new int[] {  0, -1 };
-                    break;
-                case Orientation.East:
-                    transformation[0] = new int[] {  0, 1 };
-                    transformation[1] = new int[] { -1, 0 };
-                    break;
-                default:
-                    break;
-            }
+            if (_ships.Where(s => s.GetType() == ship.GetType()).Count() >= maxAmount)
+                return false;
+
+            int[][] transformation = CreateTransformationMatrix(ship.Orientation);
 
             for (int i = 0; i < ship.Width; i++)
                 for (int j = 0; j < ship.Length; j++)
@@ -79,6 +79,24 @@ namespace OceanBattle.DataModel.Game
 
                     if (cell is null || cell.IsPopulated)
                         return false;
+                }
+
+            return true;
+        }
+
+        public bool PlaceShip(int x, int y, Ship ship)
+        {
+            if (!CanPlaceShip(x, y, ship))
+                return false;
+
+            int[][] transformation = CreateTransformationMatrix(ship.Orientation);
+
+            for (int i = 0; i < ship.Width; i++)
+                for (int j = 0; j < ship.Length; j++)
+                {
+                    (int x, int y) vector =
+                        (i * transformation[0][0] + j * transformation[0][1] + x,
+                         i * transformation[1][0] + j * transformation[1][1] + y);
 
                     Grid[vector.x][vector.y] = ship.Cells[i][j];
                 }
@@ -88,10 +106,26 @@ namespace OceanBattle.DataModel.Game
             return true;
         }
 
+        public bool CanBeHit(int x, int y)
+        {
+            bool inRange = x >= 0 && x < Grid.Length && y >= 0 && y < Grid[x].Length;
+            
+            if (!inRange ||
+                AnonimizedShips.Count() == _ships.Count) 
+                return false;
+
+            Cell cell = Grid[x][y];
+
+            if (cell.IsHit && 
+                (cell is Water || cell is Land || (cell is Armour armour && armour.HP == 0)))
+                return false;
+
+            return true;
+        }     
+
         public bool Hit(int x, int y, Weapon weapon)
         {
-            if (x < 0 || x >= Grid.Length ||
-                y < 0 || y >= Grid[x].Length)
+            if (!CanBeHit(x, y)) 
                 return false;
 
             Random rng = new Random(Guid.NewGuid().GetHashCode());
@@ -157,6 +191,36 @@ namespace OceanBattle.DataModel.Game
         }        
 
         #region private helpers
+
+        private int[][] CreateTransformationMatrix(Orientation orientation)
+        {
+            int[][] transformation =
+            {
+                new int[] { 1, 0 },
+                new int[] { 0, 1 }
+            };
+
+            switch (orientation)
+            {
+                case Orientation.West:
+                    transformation[0] = new int[] { 0, -1 };
+                    transformation[1] = new int[] { 1,  0 };
+                    break;
+                case Orientation.South:
+                    transformation[0] = new int[] { -1,  0 };
+                    transformation[1] = new int[] {  0, -1 };
+                    break;
+                case Orientation.East:
+                    transformation[0] = new int[] {  0, 1 };
+                    transformation[1] = new int[] { -1, 0 };
+                    break;
+                default:
+                    break;
+            }
+
+            return transformation;
+        }
+
         private Cell[][] AnonimizeGrid()
         {
             Cell[][] cells = new Cell[Grid.Length][];

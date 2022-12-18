@@ -10,6 +10,6 @@ namespace OceanBattle.DataModel.Game
     public class Level : BaseModel
     {
         public int BattlefieldSize { get; set; }
-        public IEnumerable<(Type type, int maxAmount)>? AvailableTypes { get; set; }
+        public Dictionary<Type, int>? AvailableTypes { get; set; }
     }
 }
