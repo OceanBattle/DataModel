@@ -2,7 +2,6 @@
 using OceanBattle.DataModel.Game.EnviromentElements;
 using System.Reactive.Linq;
 using System.Reactive.Subjects;
-using System.Security.Cryptography.X509Certificates;
 
 namespace OceanBattle.DataModel.Game
 {
@@ -61,28 +60,14 @@ namespace OceanBattle.DataModel.Game
 
             for (int i = 0; i < ship.Width; i++)
                 for (int j = 0; j < ship.Length; j++)
-                {
                     if (!VerifyCell((i, j), (x, y), transformation, out (int x, int y) _))
                         return false;
-                    //(int x, int y) vector = Add(Multiply((i, j), transformation), (x, y));
-
-                    //if (!IsInBounds(vector))
-                    //    return false;
-
-                    //Cell cell = Grid[vector.x][vector.y];
-
-                    //if (cell is null || cell.IsPopulated)
-                    //    return false;
-                }
 
             return true;
         }
 
         public bool PlaceShip(int x, int y, Ship ship)
         {
-            //if (!CanPlaceShip(x, y, ship))
-            //    return false;
-            
             if (!IsAllowedByLevel(ship))
                 return false;
 
