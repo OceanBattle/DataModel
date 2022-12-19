@@ -54,10 +54,7 @@ namespace OceanBattle.DataModel.Game
 
         public bool CanPlaceShip(int x, int y, Ship ship)
         {
-            if (!Level.AvailableTypes!.TryGetValue(ship.GetType(), out int maxAmount))
-                return false;
-
-            if (_ships.Where(s => s.GetType() == ship.GetType()).Count() >= maxAmount)
+            if (!IsAllowedByLevel(ship))
                 return false;
 
             int[][] transformation = CreateTransformationMatrix(ship.Orientation);
@@ -65,20 +62,17 @@ namespace OceanBattle.DataModel.Game
             for (int i = 0; i < ship.Width; i++)
                 for (int j = 0; j < ship.Length; j++)
                 {
-                    (int x, int y) vector =
-                        (i * transformation[0][0] + j * transformation[0][1] + x,
-                         i * transformation[1][0] + j * transformation[1][1] + y);
-
-                    if (vector.x >= Grid.Length ||
-                        vector.x < 0 ||
-                        vector.y >= Grid[0].Length ||
-                        vector.y < 0)
+                    if (!VerifyCell((i, j), (x, y), transformation, out (int x, int y) _))
                         return false;
+                    //(int x, int y) vector = Add(Multiply((i, j), transformation), (x, y));
 
-                    Cell cell = Grid[vector.x][vector.y];
+                    //if (!IsInBounds(vector))
+                    //    return false;
 
-                    if (cell is null || cell.IsPopulated)
-                        return false;
+                    //Cell cell = Grid[vector.x][vector.y];
+
+                    //if (cell is null || cell.IsPopulated)
+                    //    return false;
                 }
 
             return true;
@@ -86,7 +80,10 @@ namespace OceanBattle.DataModel.Game
 
         public bool PlaceShip(int x, int y, Ship ship)
         {
-            if (!CanPlaceShip(x, y, ship))
+            //if (!CanPlaceShip(x, y, ship))
+            //    return false;
+            
+            if (!IsAllowedByLevel(ship))
                 return false;
 
             int[][] transformation = CreateTransformationMatrix(ship.Orientation);
@@ -94,9 +91,8 @@ namespace OceanBattle.DataModel.Game
             for (int i = 0; i < ship.Width; i++)
                 for (int j = 0; j < ship.Length; j++)
                 {
-                    (int x, int y) vector =
-                        (i * transformation[0][0] + j * transformation[0][1] + x,
-                         i * transformation[1][0] + j * transformation[1][1] + y);
+                    if (!VerifyCell((i, j), (x, y), transformation, out (int x, int y) vector))
+                        return false;
 
                     Grid[vector.x][vector.y] = ship.Cells[i][j];
                 }
@@ -192,6 +188,19 @@ namespace OceanBattle.DataModel.Game
 
         #region private helpers
 
+        private (int x, int y) Add((int x, int y) vector1, (int x, int y) vector2) 
+            => (vector1.x + vector2.x, vector1.y + vector2.y);
+
+        private (int x, int y) Multiply((int x, int y) vector, int[][] matrix)
+        {
+            if (matrix.Length != 2 || matrix[0].Length != 2)
+                return vector;
+
+            return new (
+                matrix[0][0] * vector.x + matrix[0][1] * vector.y, 
+                matrix[1][0] * vector.x + matrix[1][1] * vector.y);
+        }
+
         private int[][] CreateTransformationMatrix(Orientation orientation)
         {
             int[][] transformation =
@@ -250,6 +259,36 @@ namespace OceanBattle.DataModel.Game
             if (AnonimizedShips.Count() == _ships.Count)
                 _gotHit.OnCompleted();            
         }
+
+        private bool IsAllowedByLevel(Ship ship) 
+            => Level.AvailableTypes!.TryGetValue(ship.GetType(), out int maxAmount) && 
+               _ships.Where(s => s.GetType() == ship.GetType()).Count() < maxAmount;
+        
+        private bool IsInBounds((int x, int y) vector) 
+            => vector.x < Grid.Length && 
+               vector.x >= 0 && 
+               vector.y < Grid[0].Length &&
+               vector.y >= 0;
+
+        private bool VerifyCell(
+            (int i, int j) positionVector, 
+            (int x, int y) shifVector,
+            int[][] matrix,
+            out (int x, int y) vector)
+        {
+            vector = Add(Multiply(positionVector, matrix), shifVector);
+
+            if (!IsInBounds(vector))
+                return false;
+
+            Cell cell = Grid[vector.x][vector.y];
+
+            if (cell is null || cell.IsPopulated)
+                return false;
+
+            return true;
+        }
+
         #endregion
     }
 }
