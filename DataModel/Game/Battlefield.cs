@@ -152,13 +152,10 @@ namespace OceanBattle.DataModel.Game
 
             foreach (int number in randomNumbers)
             {
-                int i = cells[number].x;
-                int j = cells[number].y;
+                int i = cells[number].x - x;
+                int j = cells[number].y - y;
 
-                double distance = Math.Sqrt(j * j + i * i);
-
-                if (distance < 1)
-                    distance = 1;
+                double distance = Math.Sqrt(j * j + i * i) + 1;
 
                 int maxDamage = (int)(weapon.Damage / distance);
                 int damage = rng.Next((int)Math.Floor(maxDamage * 0.75), maxDamage);

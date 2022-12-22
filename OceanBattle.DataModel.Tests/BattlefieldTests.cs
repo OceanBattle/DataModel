@@ -3,33 +3,18 @@ using OceanBattle.DataModel.Game.Abstractions;
 using OceanBattle.DataModel.Game.EnviromentElements;
 using OceanBattle.DataModel.Game.Ships;
 using OceanBattle.DataModel.Tests.TestData;
-using System.Drawing;
-using System.Linq;
-using System.Runtime.Serialization.Json;
+using System.Reactive.Linq;
 
 namespace OceanBattle.DataModel.Tests
 {
     public class BattlefieldTests
     {
-        private const int dimensions = 20;
-        private readonly Level level = new Level
-        {
-            BattlefieldSize = dimensions,
-            AvailableTypes = new Dictionary<Type, int>
-            {
-                { typeof(Battleship), 5 },
-                { typeof(Cruiser),    5 },
-                { typeof(Destroyer),  5 },
-                { typeof(Frigate),    5 },    
-                { typeof(Corvette),   5 },
-            }
-        };
-
         [Theory]
         [ClassData(typeof(PlaceShipSucceedData))]
         public void PlaceShip_ShouldSucceed(
             int x,
             int y,
+            Level level,
             Ship ship,
             params (int x, int y)[] cells)
         {
@@ -51,10 +36,8 @@ namespace OceanBattle.DataModel.Tests
 
             for (int i = 0; i < battlefield.Grid.Length; i++)
                 for (int j = 0; j < battlefield.Grid[i].Length; j++)
-                {
                     if (!cells.Any(c => c.x == i && c.y == j))
                         Assert.False(battlefield.Grid[i][j].IsPopulated);
-                }
         }
 
         [Theory]
@@ -62,6 +45,7 @@ namespace OceanBattle.DataModel.Tests
         public void PlaceShip_ShouldFail(
             int x,
             int y,
+            Level level,
             Ship ship)
         {
             // Arrange
@@ -81,6 +65,7 @@ namespace OceanBattle.DataModel.Tests
         public void Hit_ShouldSucceed(
             int x,
             int y,
+            Level level,
             Weapon weapon,
             params (int x, int y)[] cells)
         {
@@ -106,10 +91,10 @@ namespace OceanBattle.DataModel.Tests
                 {
                     hitCount++;
 
-                    double distance = Math.Sqrt(x * x + y * y);
+                    int i = element.x - x;
+                    int j = element.y - y;
 
-                    if (distance < 1)
-                        distance = 1;
+                    double distance = Math.Sqrt(i * i + j * j) + 1;
 
                     int maxDamage = (int)(weapon.Damage / distance);
 
@@ -118,25 +103,91 @@ namespace OceanBattle.DataModel.Tests
                 }
             }
 
-            for (int i = 0; i < dimensions; i++)
-                for (int j = 0; j < dimensions; j++)
-                {
+            for (int i = 0; i < level.BattlefieldSize; i++)
+                for (int j = 0; j < level.BattlefieldSize; j++)
                     if (!cells.Any(c => c.x == i || c.y == j))
                         Assert.False(battlefield.Grid[i][j].IsHit);
-                }
 
             Assert.True(hitCount == 1 + cells.Length / 2);
         }
 
+        [Fact]
+        public void GotHit_ShouldEmitOnCompleted()
+        {
+            // Arrange
+            Level level = new Level
+            {
+                BattlefieldSize = 4,
+                AvailableTypes = new Dictionary<Type, int>
+                {
+                    { typeof(Corvette), 1 },
+                }
+            };
+
+            Weapon weapon = new Weapon
+            {
+                DamageRadius = 0,
+                Damage = 200
+            };
+
+            Battlefield battlefield = new Battlefield(level);
+            Corvette corvette = new Corvette(100);
+            
+            battlefield.PlaceShip(1, 1, corvette);
+            
+            bool completed = false;
+
+            battlefield.GotHit.Subscribe((arg) => { }, () => completed = true);
+
+            // Act
+            battlefield.Hit(1, 1, weapon);
+            battlefield.Hit(1, 2, weapon);
+
+            // Assert
+            Assert.True(completed);
+        }
+
         [Theory]
-        [InlineData(22, 25)]
-        [InlineData(-1, 10)]
-        [InlineData(20, 19)]
-        public void Hit_ShouldFail(int x, int y)
+        [ClassData(typeof(HitSucceedData))]
+        public void GotHit_ShouldEmitOnNext(
+            int x,
+            int y,
+            Level level,
+            Weapon weapon,
+            params (int x, int y)[] cells)
         {
             // Arrange
             Battlefield battlefield = new Battlefield(level);
-            Weapon weapon = new Weapon { Damage = 100, DamageRadius = 3 };
+            Battleship battleship = new Battleship(400);
+            
+            battlefield.PlaceShip(15, 15, battleship);
+
+            (int x, int y) actual = (0, 0);
+            battlefield.GotHit.Subscribe(x => actual = x);
+
+            // Act
+            
+            battlefield.Hit(x, y, weapon);
+
+            // Assert
+            Assert.Equal(x, actual.x);
+            Assert.Equal(y, actual.y);
+        }
+
+        [Theory]
+        [ClassData(typeof(HitFailData))]
+        public void Hit_ShouldFail(
+            int x,
+            int y,
+            Level level,
+            int hp,
+            Dictionary<Ship, (int x, int y)> dataSets)
+        {
+            // Arrange
+            Battlefield battlefield = CreatePopulatedBattlefield(level, hp, dataSets);
+            Weapon weapon = new Weapon { Damage = hp, DamageRadius = 3 };
+
+            battlefield.Hit(18, 18, weapon);
 
             // Act
             bool actual = battlefield.Hit(x, y, weapon);
@@ -145,12 +196,16 @@ namespace OceanBattle.DataModel.Tests
             Assert.False(actual);
         }
 
-        [Fact]
-        public void AnonimizedShips_ShouldSucceed()
+        [Theory]
+        [ClassData(typeof(AnonimizedSucceedData))]
+        public void AnonimizedShips_ShouldSucceed(
+            Level level,
+            int hp,
+            Dictionary<Ship, (int x, int y)> dataSets)
         {
             // Arrange 
-            Battlefield battlefield = new Battlefield(level);
-            PopulateBattlefield(battlefield);
+            Battlefield battlefield =
+                CreatePopulatedBattlefield(level, hp, dataSets);
 
             // Act 
             IEnumerable<Ship> actual = battlefield.AnonimizedShips.ToList();
@@ -160,32 +215,113 @@ namespace OceanBattle.DataModel.Tests
             Assert.True(actual.Count() == 3);
         }
 
-        [Fact]
-        public void AnonimizedGrid_ShouldSucceed()
+        [Theory]
+        [ClassData(typeof(AnonimizedSucceedData))]
+        public void AnonimizedGrid_ShouldSucceed(
+            Level level,
+            int hp,
+            Dictionary<Ship, (int x, int y)> dataSets)
         {
             // Arrange
-            Battlefield battlefield = new Battlefield(level);
-            PopulateBattlefield(battlefield);
+            Battlefield battlefield =
+                CreatePopulatedBattlefield(level, hp, dataSets);
 
             // Act
             Cell[][] actual = battlefield.AnonimizedGrid;
 
             // Assert              
-            Assert.DoesNotContain(actual.SelectMany(cells => cells), cell => cell is Armour armour && !armour.IsHit);
+            Assert.DoesNotContain(
+                actual.SelectMany(cells => cells),
+                cell => cell is Armour armour && !armour.IsHit);
         }
 
-        private void PopulateBattlefield(Battlefield battlefield)
+
+        [Theory]
+        [ClassData(typeof(HitSucceedData))]
+        public void CanBeHit_ShouldBeTrue(
+            int x,
+            int y,
+            Level level,
+            params object[] prams)
         {
-            int hp = 100;
-            Dictionary<Ship, (int x, int y)> dataSets = new Dictionary<Ship, (int x, int y)>
-            {
-                { new Battleship(2 * hp), (0, 0) },
-                { new Destroyer(hp), (2, 10) },
-                { new Frigate(2 * hp), (5, 3) },
-                { new Frigate(hp), (6, 10) },
-                { new Corvette(2 * hp), (8, 5) },
-                { new Corvette(hp), (12, 13) }
-            };
+            // Arrange
+            Battlefield battlefield = new Battlefield(level);
+            Battleship battleship = new Battleship(400);
+            battlefield.PlaceShip(15, 15, battleship);
+
+            // Act
+            bool actual = battlefield.CanBeHit(x, y);
+
+            // Assert
+            Assert.True(actual);
+        }
+
+        [Theory]
+        [ClassData(typeof(HitFailData))]
+        public void CanBeHit_ShouldBeFalse(
+            int x,
+            int y,
+            Level level,
+            int hp,
+            Dictionary<Ship, (int x, int y)> dataSets)
+        {
+            // Arrange
+            Battlefield battlefield = CreatePopulatedBattlefield(level, hp, dataSets);
+            Weapon weapon = new Weapon { Damage = hp, DamageRadius = 3 };
+
+            battlefield.Hit(18, 18, weapon);
+
+            // Act
+            bool actual = battlefield.CanBeHit(x, y);
+
+            // Assert
+            Assert.False(actual);
+        }
+
+        [Theory]
+        [ClassData(typeof(PlaceShipSucceedData))]
+        public void CanPlaceShip_ShouldBeTrue(
+            int x,
+            int y,
+            Level level,
+            Ship ship,
+            params (int x, int y)[] cells)
+        {
+            // Arrange
+            Battlefield battlefield = new Battlefield(level);
+
+            // Act
+            bool actual = battlefield.CanPlaceShip(x, y, ship);
+
+            // Assert
+            Assert.True(actual);
+        }
+
+        [Theory]
+        [ClassData(typeof(PlaceShipFailData))]
+        public void CanPlaceShip_ShouldBeFalse(
+            int x,
+            int y,
+            Level level,
+            Ship ship)
+        {
+            // Arrange
+            Battlefield battlefield = new Battlefield(level);
+            battlefield.PlaceShip(19, 16, new Destroyer(100));
+
+            // Act
+            bool actual = battlefield.CanPlaceShip(x, y, ship);
+
+            // Assert
+            Assert.False(actual);
+        }
+
+        private Battlefield CreatePopulatedBattlefield(
+            Level level,
+            int hp,
+            Dictionary<Ship, (int x, int y)> dataSets)
+        {
+            Battlefield battlefield = new Battlefield(level);
 
             dataSets.AsParallel().ForAll(dataSet =>
             {
@@ -195,6 +331,8 @@ namespace OceanBattle.DataModel.Tests
                 .ToList()
                 .ForEach(cells => cells.ToList().ForEach(cell => cell.Hit(hp)));
             });
+
+            return battlefield;
         }
     }
 }
