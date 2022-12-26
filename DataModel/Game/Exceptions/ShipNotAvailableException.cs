@@ -2,16 +2,16 @@
 
 namespace OceanBattle.DataModel.Game.Exceptions
 {
-    public class SessionNotFoundException : HubException
+    public class ShipNotAvailableException : HubException
     {
-        public static readonly string Name = "SessionNotFoundException";
+        public static readonly string Name = "ShipNotAvailableException";
 
-        public SessionNotFoundException()
+        public ShipNotAvailableException()
             : base(Name)
         {
         }
 
-        public SessionNotFoundException(Exception? innerException)
+        public ShipNotAvailableException(Exception? innerException)
             : base(
                   Name,
                   innerException)

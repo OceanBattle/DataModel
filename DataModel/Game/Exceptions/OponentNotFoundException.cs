@@ -1,22 +1,19 @@
-﻿namespace OceanBattle.DataModel.Game.Exceptions
+﻿using Microsoft.AspNetCore.SignalR;
+
+namespace OceanBattle.DataModel.Game.Exceptions
 {
-    public class OponentNotFoundException : Exception
+    public class OponentNotFoundException : HubException
     {
+        public static readonly string Name = "OponentNotFoundException";
+
         public OponentNotFoundException()
-            : base()
+            : base(Name)
         {
         }
 
-        public OponentNotFoundException(string? message)
-            : base(message)
-        {
-        }
-
-        public OponentNotFoundException(
-            string? message,
-            Exception? innerException)
+        public OponentNotFoundException(Exception? innerException)
             : base(
-                  message,
+                  Name,
                   innerException)
         {
         }

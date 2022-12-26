@@ -1,22 +1,19 @@
-﻿namespace OceanBattle.DataModel.Game.Exceptions
+﻿using Microsoft.AspNetCore.SignalR;
+
+namespace OceanBattle.DataModel.Game.Exceptions
 {
-    public class SessionInactiveException : Exception
+    public class SessionInactiveException : HubException
     {
+        public static readonly string Name = "SessionInactiveException";
+
         public SessionInactiveException()
-            : base()
+            : base(Name)
         {
         }
 
-        public SessionInactiveException(string? message)
-            : base(message)
-        {
-        }
-
-        public SessionInactiveException(
-            string? message,
-            Exception? innerException)
+        public SessionInactiveException(Exception? innerException)
             : base(
-                  message,
+                  Name,
                   innerException)
         {
         }

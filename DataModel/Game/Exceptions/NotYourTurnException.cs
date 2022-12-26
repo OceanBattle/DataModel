@@ -1,22 +1,19 @@
-﻿namespace OceanBattle.DataModel.Game.Exceptions
+﻿using Microsoft.AspNetCore.SignalR;
+
+namespace OceanBattle.DataModel.Game.Exceptions
 {
-    public class NotYourTurnException : Exception
+    public class NotYourTurnException : HubException
     {
+        public static readonly string Name = "NotYourTurnException";
+
         public NotYourTurnException()
-            : base()
+            : base(Name)
         {
         }
 
-        public NotYourTurnException(string? message)
-            : base(message)
-        {
-        }
-
-        public NotYourTurnException(
-            string? message,
-            Exception? innerException)
+        public NotYourTurnException(Exception? innerException)
             : base(
-                  message,
+                  Name,
                   innerException)
         {
         }

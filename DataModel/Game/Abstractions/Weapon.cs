@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace OceanBattle.DataModel.Game.Abstractions
 {
-    public class Weapon
+    public class Weapon : BaseModel
     {
         public int DamageRadius { get; set; }
         public int Damage { get; set; }

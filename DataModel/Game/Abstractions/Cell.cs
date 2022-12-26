@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace OceanBattle.DataModel.Game.Abstractions
+﻿namespace OceanBattle.DataModel.Game.Abstractions
 {
     public abstract class Cell : IHittable
     {

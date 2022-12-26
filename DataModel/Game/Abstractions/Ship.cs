@@ -1,21 +1,18 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Collections.Immutable;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using OceanBattle.DataModel.Game.EnviromentElements;
+﻿using OceanBattle.DataModel.Game.EnviromentElements;
 
 namespace OceanBattle.DataModel.Game.Abstractions
 {
-    public abstract class Ship
+    public abstract class Ship : BaseModel
     {
         public Orientation Orientation { get; set; }
+        public int Armour { get; private set; }
         public int Width { get; private set; }
         public int Length { get; private set; }
         public Armour[][] Cells { get; private set; }
 
-        public bool IsDestroyed => !Cells.SelectMany(a => a).Any(c => c.HP != 0);
+        public bool IsDestroyed 
+            => !Cells.SelectMany(a => a)
+                     .Any(c => c.HP != 0);
 
         public Ship(
             int width, 
@@ -24,6 +21,7 @@ namespace OceanBattle.DataModel.Game.Abstractions
         {
             Width = width;
             Length = length;
+            Armour = armour;
 
             Cells = new Armour[width][];
 

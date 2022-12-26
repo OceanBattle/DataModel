@@ -316,6 +316,115 @@ namespace OceanBattle.DataModel.Tests
             Assert.False(actual);
         }
 
+        [Fact]
+        public void IsReady_ShouldBeTrue()
+        {
+            // Arrange
+            Battlefield battlefield = IsReady_Arrange();
+
+            // battlefield needs owner to be ready
+            battlefield.Owner = new User();
+
+            bool notified = false;
+            bool status = false;
+            battlefield.StatusChanged.Subscribe(s => 
+            { 
+                notified = true; 
+                status = s; 
+            });
+
+            // Act 
+            battlefield.IsReady = true;
+            bool actual = battlefield.IsReady;
+
+            // Assert
+            Assert.True(actual);
+            Assert.True(notified); 
+            Assert.True(status);
+        }
+
+        [Fact]
+        public void IsReady_ShouldBeFalse_NoOwner()
+        {
+            // Arrange
+            Battlefield battlefield = IsReady_Arrange();
+
+            bool notified = false;
+            battlefield.StatusChanged.Subscribe(s => notified = true);
+
+            // Act 
+            battlefield.IsReady = true;
+            bool actual = battlefield.IsReady;
+
+            // Assert
+            Assert.False(actual);
+            Assert.False(notified);
+        }
+
+        [Fact]
+        public void IsReady_ShouldBeFalse_NotAllShipsPlaced() 
+        {
+            // Arrange
+            Level level = new Level
+            {
+                AvailableTypes = new Dictionary<Type, int>
+                {
+                    { typeof(Corvette), 2 },
+                    { typeof(Frigate), 1 },
+                },
+                BattlefieldSize = 8
+            };
+
+            Dictionary<Ship, (int x, int y)> dataSet = new Dictionary<Ship, (int x, int y)>
+            {
+                { new Corvette(100), (0, 0) },
+                { new Corvette(100), (4, 0) }
+            };
+
+            Battlefield battlefield = CreatePopulatedBattlefield(level, 0, dataSet);
+            battlefield.Owner = new User();
+
+            bool notified = false;
+            battlefield.StatusChanged.Subscribe(s => notified = true);
+
+            // Act
+            battlefield.IsReady = true;
+            bool actual = battlefield.IsReady;
+
+            // Assert
+            Assert.False(actual);  
+            Assert.False(notified);
+        }
+
+        #region private helpers
+
+        private Battlefield IsReady_Arrange()
+        {
+            // simple level for test
+            Level level = new Level
+            {
+                AvailableTypes = new Dictionary<Type, int>
+                {
+                    { typeof(Corvette), 2 },
+                    { typeof(Frigate), 1 },
+                },
+                BattlefieldSize = 8
+            };
+
+            // ships that fill level requirements, it needs to satisfy level to be ready
+            Dictionary<Ship, (int x, int y)> dataSet = new Dictionary<Ship, (int x, int y)>
+            {
+                { new Corvette(100), (0, 0) },
+                { new Corvette(100), (4, 0) },
+                { new Frigate(100), (1, 4) }
+            };
+
+            // creates populated battlefield, it needs to be for it being ready
+            Battlefield battlefield = CreatePopulatedBattlefield(level, 0, dataSet);    
+
+            return battlefield;
+        }
+
         private Battlefield CreatePopulatedBattlefield(
             Level level,
             int hp,
@@ -323,16 +432,17 @@ namespace OceanBattle.DataModel.Tests
         {
             Battlefield battlefield = new Battlefield(level);
 
-            dataSets.AsParallel().ForAll(dataSet =>
+            foreach (var dataSet in dataSets)
             {
                 battlefield.PlaceShip(dataSet.Value.x, dataSet.Value.y, dataSet.Key);
 
-                dataSet.Key.Cells
-                .ToList()
-                .ForEach(cells => cells.ToList().ForEach(cell => cell.Hit(hp)));
-            });
+                dataSet.Key.Cells.ToList()
+                                 .ForEach(cells => cells.ToList().ForEach(cell => cell.Hit(hp)));
+            }
 
             return battlefield;
         }
+
+        #endregion
     }
 }

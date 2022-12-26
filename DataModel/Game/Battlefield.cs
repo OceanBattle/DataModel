@@ -1,5 +1,7 @@
 ﻿using OceanBattle.DataModel.Game.Abstractions;
 using OceanBattle.DataModel.Game.EnviromentElements;
+using OceanBattle.DataModel.Game.Exceptions;
+using System.Numerics;
 using System.Reactive.Linq;
 using System.Reactive.Subjects;
 
@@ -7,8 +9,13 @@ namespace OceanBattle.DataModel.Game
 {
     public class Battlefield : IBattlefield
     {
+        private Subject<bool> _statusChanged = new();
+        public IObservable<bool> StatusChanged 
+            => _statusChanged.AsObservable();
+
         private Subject<(int x, int y)> _gotHit = new();
-        public IObservable<(int x, int y)> GotHit => _gotHit.AsObservable();
+        public IObservable<(int x, int y)> GotHit 
+            => _gotHit.AsObservable();
 
         private List<Ship> _ships = new();
         public IEnumerable<Ship> Ships => _ships.AsEnumerable();
@@ -17,16 +24,32 @@ namespace OceanBattle.DataModel.Game
             .Where(ship => ship.IsDestroyed)
             .AsEnumerable();
 
+        public bool AllShipsPlaced
+            => Level.AvailableTypes is not null && 
+               Level.AvailableTypes.All(
+                   ship => _ships.Count(s => s.GetType() == ship.Key) == ship.Value);
+
         public Level Level { get; private set; }
 
         public User? Owner { get; set; }
 
-        private bool _isReady;
+        private bool _isReady = false;
         public bool IsReady
         {
             get => _isReady;
-            set => _isReady = 
-                value && Owner is not null;            
+            set
+            {
+                if (value && 
+                    AllShipsPlaced && 
+                    Owner is not null != 
+                    _isReady)
+                {
+                    _isReady = 
+                        value && AllShipsPlaced && Owner is not null;
+
+                    _statusChanged.OnNext(_isReady);
+                }                
+            }
         }
 
         public Cell[][] Grid { get; private set; }

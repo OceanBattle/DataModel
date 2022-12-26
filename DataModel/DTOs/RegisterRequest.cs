@@ -52,11 +52,5 @@ namespace OceanBattle.DataModel.DTOs
             MinimumLength = 2,
             ErrorMessage = "Last name has invalid length.")]
         public string? LastName { get; set; }
-
-        /// <summary>
-        /// User's date of birth.
-        /// </summary>
-        [Required(ErrorMessage = "Date of birth is required.")]
-        public DateTime BirthDate { get; set; }
     }
 }

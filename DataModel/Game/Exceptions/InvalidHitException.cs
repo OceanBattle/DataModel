@@ -1,22 +1,19 @@
-﻿namespace OceanBattle.DataModel.Game.Exceptions
+﻿using Microsoft.AspNetCore.SignalR;
+
+namespace OceanBattle.DataModel.Game.Exceptions
 {
-    public class InvalidHitException : Exception
+    public class InvalidHitException : HubException
     {
+        public static readonly string Name = "InvalidHitException";
+
         public InvalidHitException()
-            : base()
+            : base(Name)
         {
         }
 
-        public InvalidHitException(string? message)
-            : base(message)
-        {
-        }
-
-        public InvalidHitException(
-            string? message,
-            Exception? innerException)
+        public InvalidHitException(Exception? innerException)
             : base(
-                  message,
+                  Name,
                   innerException)
         {
         }

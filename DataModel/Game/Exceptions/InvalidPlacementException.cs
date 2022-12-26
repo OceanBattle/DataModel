@@ -1,22 +1,19 @@
-﻿namespace OceanBattle.DataModel.Game.Exceptions
+﻿using Microsoft.AspNetCore.SignalR;
+
+namespace OceanBattle.DataModel.Game.Exceptions
 {
-    public class InvalidPlacementException : Exception
+    public class InvalidPlacementException : HubException
     {
+        public static readonly string Name = "InvalidPlacementException";
+
         public InvalidPlacementException()
-            : base()
+            : base(Name)
         {
         }
 
-        public InvalidPlacementException(string? message)
-            : base(message)
-        {
-        }
-
-        public InvalidPlacementException(
-            string? message,
-            Exception? innerException)
+        public InvalidPlacementException(Exception? innerException)
             : base(
-                  message,
+                  Name,
                   innerException)
         {
         }
