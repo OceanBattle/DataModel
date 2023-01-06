@@ -1,4 +1,5 @@
-﻿using System;
+﻿using OceanBattle.DataModel.Game.Abstractions;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -17,5 +18,10 @@ namespace OceanBattle.DataModel.DTOs
         /// User's username.
         /// </summary>
         public string? UserName { get; set; }
+
+        /// <summary>
+        /// Vessels owned by user.
+        /// </summary>
+        public IEnumerable<Ship>? OwnedVessels { get; set; }
     }
 }

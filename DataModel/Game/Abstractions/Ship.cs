@@ -33,5 +33,8 @@ namespace OceanBattle.DataModel.Game.Abstractions
                     Cells[i][j] = new Armour(armour);
             }
         }
+
+        public string? UserId { get; set; }
+        public User? User { get; set; }
     }
 }
