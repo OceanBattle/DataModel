@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace OceanBattle.DataModel.DTOs
 {
-    public class LevelDto
+    public class LevelDto : BaseModel
     {
         public int BattlefieldSize { get; set; }
         public Dictionary<string, int>? AvailableTypes { get; set; }
