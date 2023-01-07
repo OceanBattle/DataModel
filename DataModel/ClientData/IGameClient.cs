@@ -7,9 +7,9 @@ namespace OceanBattle.DataModel.ClientData
         Task UpdateActiveUsersAsync(IEnumerable<UserDto> users);
         Task InviteAsync(UserDto sender);
         Task FinishDeploymentAsync();
-        Task StartDeploymentAsync();
+        Task StartDeploymentAsync(LevelDto level);
         Task EndGameAsync();
-        Task StartGameAsync();
-        Task GotHitAsync();
+        Task StartGameAsync(BattlefieldDto oponentBattlefield);
+        Task GotHitAsync(BattlefieldDto battlefield, int x, int y);
     }
 }
