@@ -8,11 +8,11 @@ namespace OceanBattle.DataModel.Game.Abstractions
         public int Armour { get; private set; }
         public int Width { get; private set; }
         public int Length { get; private set; }
-        public Armour[][] Cells { get; private set; }
+        public Armour?[][] Cells { get; set; }
 
         public bool IsDestroyed 
             => !Cells.SelectMany(a => a)
-                     .Any(c => c.HP != 0);
+                     .Any(c =>  c is not null && c.HP != 0);
 
         public Ship(
             int width, 
