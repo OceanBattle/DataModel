@@ -1,4 +1,5 @@
-﻿using OceanBattle.DataModel.Game.EnviromentElements;
+﻿using Newtonsoft.Json;
+using OceanBattle.DataModel.Game.EnviromentElements;
 
 namespace OceanBattle.DataModel.Game.Abstractions
 {
@@ -8,11 +9,24 @@ namespace OceanBattle.DataModel.Game.Abstractions
         public int Armour { get; private set; }
         public int Width { get; private set; }
         public int Length { get; private set; }
-        public Armour?[][] Cells { get; set; }
+        public Armour[][] Cells { get; private set; }
 
         public bool IsDestroyed 
             => !Cells.SelectMany(a => a)
-                     .Any(c =>  c is not null && c.HP != 0);
+                     .Any(c => c.HP != 0);
+
+        [JsonConstructor]
+        public Ship(
+            int width,
+            int length,
+            int armour,
+            Armour[][] cells)
+        {
+            Width = width;
+            Length = length;
+            Armour = armour;
+            Cells = cells;
+        }
 
         public Ship(
             int width, 
